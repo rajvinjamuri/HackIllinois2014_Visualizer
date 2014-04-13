@@ -16,7 +16,7 @@ int[] columns = {24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39};
 boolean on[][] = new boolean[layers.length][columns.length];
 
 void setup() {
-    arduino = new Arduino(this, "/dev/tty.usbmodem1421", 57600);
+    arduino = new Arduino(this, "/dev/tty.usbmodem1421");
     minim = new Minim(this);
     song = minim.loadFile("bounceit.mp3",1024);
     song.loop();
@@ -30,7 +30,6 @@ void setup() {
     for(int i = 0; i < columns.length; i ++){
         arduino.pinMode(columns[i], Arduino.OUTPUT); 
     }
-    //frameRate(120);
     setOff();
 }
 
@@ -48,12 +47,8 @@ void setOff(){
         setColumn(i, false);
     }
 }
-int cycleTimeout = 50;
-int counter = cycleTimeout;
-int currentOn = 0;
 void setColumn(int index, boolean on){
     int pin = columns[index];
-    
     if(on){
         arduino.digitalWrite(pin, Arduino.HIGH);
     }else{
@@ -63,7 +58,6 @@ void setColumn(int index, boolean on){
 }
 void setLayer(int index, boolean on){
     int pin = layers[index];
-    
     if(on){
         arduino.digitalWrite(pin, Arduino.LOW);
     }else{
@@ -77,48 +71,42 @@ void turnOffColumns(){
 }
 int index = 0;
 float maxAve = 0;
+int delay_t = 50; //(ms)
+int previousLayer = -1;
+
 void draw() {
-    setLayer(1,true);
-    setColumn(1,true);
+
     println("something");
-    /*fftLog.forward( song.mix );
+    fftLog.forward( song.mix );
     //println("num Averages: " + fftLog.avgSize());
     for(int i = 0; i < 16; i++){
-        float ave = fftLog.getAvg(i);
+        float ave = fftLog.getAvg(i) * fftLog.getAverageBandWidth(i);
+        //float averageWidth = fftLog.getAverageBandWidth(i);
+        //float total = ave * aveWidth;
         if(ave > maxAve){
           maxAve = ave;
           println(maxAve);
         }
-        int power = (int)ave / 50;
+        int power = (int)ave / 800;
         if(power > 3) power = 3;
-        println(power);
+        println(power + " - " + ave);
         for(int j = 0; j < power; j++){
+          println("setting on");
           on[j][i] = true;
         }
     }
     
     for(int layer = 0; layer < on.length; layer++){
         boolean [] layerArray = on[layer];
+        if(previousLayer != -1) setLayer(previousLayer, false);
         setLayer(layer, true);
         for(int column = 0; column < layerArray.length; column++){
             boolean isOn = layerArray[column];
             setColumn(column, isOn);
-            if(isOn){
-                setColumn(column, false);
-            }
         }
-        delay(50);
+        delay(delay_t);
         turnOffColumns();
-        setLayer(layer, false);
-    }*/
-    /*
-    if(counter == 0){
-        counter = cycleTimeout;
-        currentOn = (currentOn + 1) % 4;
-        setOff();
-        int currentOnLayer = currentOn / layers.length;
-        int currentOnColumn = currentOn % 2;
-        on[currentOnLayer][currentOnColumn] = true;
-    }*/
+        previousLayer = layer;
+    }
 }
     
